@@ -65,4 +65,26 @@ public class WebClientController {
 
         return result.block();
     }
+
+    public void sendToMobius(int number) {
+        Map<String, Object> singleAddress = geoDAO.getDataForService(number);
+
+        WebClient webClient = WebClient.builder()
+                .baseUrl(BASE_URL)
+                // 헤더 설정 해야 하면 넣기
+                .build();
+
+        Mono<String> callNodeServer = webClient.post()
+                .uri(uriBuilder -> uriBuilder
+                        .path(SUB_URL)
+                        .build())
+                .body(Mono.just(singleAddress), Map.class)
+                .retrieve()
+                .bodyToMono(String.class)
+                .log();
+
+        log.info("Send data to mobius server: {}", utilMapToString(singleAddress));
+        log.info("Result of mobius sent data :{}" , callNodeServer.block());
+
+    }
 }
